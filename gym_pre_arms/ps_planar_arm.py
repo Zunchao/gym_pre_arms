@@ -5,7 +5,7 @@ import matplotlib.animation as animation
 from time import time
 
 class SimEnv3Joints():
-    '''build a simple 2d env for 3 joint arm moving in a limited space'''
+    '''build a simple 2d env for 3 joint arm moving in a limited space, basic functions from https://github.com/msieb1/policy-search-for-2d-arm'''
     def __init__(self):
         # env param
         self.numJoints = 3
@@ -25,8 +25,8 @@ class SimEnv3Joints():
         # em param
         self.lamta = 7
         self.numDim = 15
-        self.numSamples = 25
-        self.maxIter = 100
+        self.numSamples = 50
+        self.maxIter = 200
         self.numTrials = 10
 
         self.pjoint_ = np.zeros((self.dofArm + 1, 2))
@@ -210,7 +210,7 @@ class SimEnv3Joints():
         return Mu_w, Sigma_w
 
     def run(self):
-        maxIter = 50
+        maxIter = self.maxIter
         numDim = self.numDim
         numSamples = self.numSamples
         numTrials = self.numTrials
