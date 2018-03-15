@@ -58,9 +58,9 @@ class SimEnv3Joints():
             self.py[0][i] = self.pjoint_[i, 1]
         #print('px', self.px, 'py', self.py)
         # plt.cla()
-        #ax.plot(self.px, self.py)
-        #plt.pause(1)
-        #self.fig.canvas.draw()
+        # ax.plot(self.px, self.py)
+        # plt.pause(1)
+        # self.fig.canvas.draw()
 
     def pjoint_global(self):
         global pjoint_
@@ -75,7 +75,7 @@ class SimEnv3Joints():
             T = T*self.transJoint(theta_[i])
             #print('matriac: ',[T[0, -1], T[1, -1]])
             self.pjoint_[i + 1, :] = [T[0, -1], T[1, -1]]
-        # print('fdsfdgfgh', pjoint_[:, 0], pjoint_[:, 1])
+        # print('position fo each joint : ', pjoint_[:, 0], pjoint_[:, 1])
         # self.pjoint_ = pjoint_
         #return each_pjoint_
 
@@ -161,8 +161,8 @@ class SimEnv3Joints():
             u[i, :] = np.dot(mat_state_, (q_desired[i, :] - q[i, :]).T)
             q[i + 1, :] = self.transitionFunction(q[i, :], u[i, :])
             pos[i + 1, :] = self.fKinematics(q[i + 1, ::2])
-            #pjoint_ = self.jointPositions(q[-1, ::2])
-            #print('pjoint : ', pjoint_)
+            # pjoint_ = self.jointPositions(q[-1, ::2])
+            # print('pjoint : ', pjoint_)
             # px, py = self.pjoint_global_update()
             # self.movie_animate(0)
             vel[i + 1, :] = np.dot(self.jacobianMatrix(q[i + 1, ::2])[:2, :], q[i + 1, 1::2].T)  # linear velocity
@@ -232,15 +232,14 @@ class SimEnv3Joints():
 
         #pos = np.zeros((self.numSamples, 2*self.numJoints))
 
-
         for t in range(0, numTrials):
-            print('trials no. : ', t)
+            print('trials No. : ', t)
             R_old = np.zeros(numSamples)
             Mu_w = np.zeros(numDim)
             Sigma_w = np.eye(numDim) * 1e6
             for k in range(0, maxIter):
                 R, theta, traj = self.calculate_reward_and_theta(Mu_w, Sigma_w)
-                # print('jjjj')
+                # plot end config of sampled trajectories
                 self.pjoint_global_update()
                 plt.axis(([-30, 30, -30, 30]))
                 plt.grid()
@@ -249,7 +248,6 @@ class SimEnv3Joints():
                 plt.plot(self.setTargetPosi[0], self.setTargetPosi[1], 'ro')
                 plt.pause(0.00001)
                 plt.cla()
-
 
                 if np.linalg.norm(np.mean(R_old) - np.mean(R)) < 1e-3:
                     break
@@ -262,6 +260,7 @@ class SimEnv3Joints():
                 if k == maxIter and t == numTrials:
                     print(np.mean(R))
             print('start trajactory of trial ', t)
+            # plot trajectory of last iteration
             for j in range(traj.shape[0]-1):
                 self.jointPositions(traj[j + 1,::2])
                 self.pjoint_global_update()
@@ -273,14 +272,15 @@ class SimEnv3Joints():
                 plt.plot(self.setTargetPosi[0], self.setTargetPosi[1], 'ro')
                 plt.pause(0.000001)
                 plt.cla()
+
         R_mean = np.mean(R_mean_storage, axis=1)
         R_std = np.sqrt(np.diag(np.cov(R_mean_storage)))
         print("Average return of final policy: ")
         print(R_mean[-1])
         print("\n")
 
-
-
+    # try to use animate() to visualise but failed
+    # the following 2 functions useless
     def movie_init(self):
         global line
         print('movie init')
@@ -305,15 +305,15 @@ test = SimEnv3Joints()
 
 # test.movie_init()
 # test.pjoint_global()
-#test.pjoint_global_update()
+# test.pjoint_global_update()
 # test.movie_animate(0)
 
-#ani.save('test_new.mp4', fps=30, extra_args=['-vcodec', 'libx264'])
+# ani.save('test_new.mp4', fps=30, extra_args=['-vcodec', 'libx264'])
 
 test.run()
 plt.close(test.fig)
-'''
 
+'''
 global test
 test = SimEnv3Joints()
 
@@ -343,35 +343,4 @@ ani = animation.FuncAnimation(fig, movie_animate, frames=300,
                               interval=100, blit=True, init_func=movie_init)
 # ani.save('test_new.mp4', fps=30, extra_args=['-vcodec', 'libx264'])
 plt.show()
-
-print('hsdzugf')
-maxIter = 1000
-numDim = test.numDim
-numSamples = test.numSamples
-numTrials = test.numTrials
-
-R_mean_storage = np.zeros((maxIter, numTrials))
-R_mean = np.zeros(maxIter)
-R_std = np.zeros(maxIter)
-
-for t in range(0, numTrials):
-    R_old = np.zeros(numSamples)
-    Mu_w = np.zeros(numDim)
-    Sigma_w = np.eye(numDim) * 1e6
-    for k in range(0, maxIter):
-        R, theta = test.calculate_reward_and_theta(Mu_w, Sigma_w)
-        if np.linalg.norm(np.mean(R_old) - np.mean(R)) < 1e-3:
-            break
-        w = test.calculate_w(R, theta)
-        Mu_w, Sigma_w = test.update_omega(w, theta)
-        Sigma_w += np.eye(numDim)
-        mR = np.mean(R)
-        R_mean_storage[k, t] = mR
-        R_old = R
-        if k == maxIter and t == numTrials:
-            print(np.mean(R))
-R_mean = np.mean(R_mean_storage, axis=1)
-R_std = np.sqrt(np.diag(np.cov(R_mean_storage)))
-print("Average return of final policy: ")
-print(R_mean[-1])
 '''
