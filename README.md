@@ -9,11 +9,8 @@ used for openai gym env
  build a simple 2d env for 3 joint arm moving in a limited space, basic functions from https://github.com/msieb1/policy-search-for-2d-arm, random targets and stopped by distance to the target
  
  add:
- 
- gym_pre_arms/MUJOCO_LOG.TXT - unknown source
- 
-	gym_pre_arms/Pend2dBallThrowDMP.py
-  
+
+	gym_pre_arms/MUJOCO_LOG.TXT - unknown source
 	gym_pre_arms/actorNetwork.py - unknown source
   
 	gym_pre_arms/criticNetwork.py - unknown source
