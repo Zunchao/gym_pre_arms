@@ -1,0 +1,23 @@
+<mujoco model="arm2joints">
+    <compiler inertiafromgeom='true' angle='degree' coordinate="global"/>
+    <default>
+        <geom rgba=".8 .6 .4 1"/>
+    </default>
+
+    <worldbody>
+        <light pos="0 1 1" dir="0 0 1" diffuse="1 1 1"/>
+        <body>
+            <geom name="link1" type="capsule" fromto="0 0 0 0 0 0.5" size="0.05"/>
+            <joint name="joint01" type="hinge" pos="0 0 0"/>
+            <body>
+                <geom name="link2" type="capsule" fromto="0 0 0.5  0 0 1.0" size="0.05" rgba="0.3 0.3 0.7 1"/>
+                <joint name="joint12" type="hinge" pos="0 0 0.5" axis="0 1 0"/>       
+                <body>
+                    <geom name="link3" type="capsule" fromto="0 0 1.0  0 0 1.5" size="0.05"/>
+                    <joint name="joint23" type="hinge" pos="0 0 1.0" axis="0 1 0"/>      
+                </body>
+            </body>
+        </body>
+    </worldbody>
+
+</mujoco>
