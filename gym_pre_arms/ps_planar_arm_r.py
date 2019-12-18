@@ -3,6 +3,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from time import time
+import GPy
+from IPython.display import display
+import time
+import csv
+import os
+import inspect
+currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+parentdir = os.path.dirname(os.path.dirname(currentdir))
+os.sys.path.insert(0, parentdir)
 
 class SimEnv3Joints():
     '''build a simple 2d env for 3 joint arm moving in a limited space, basic functions from https://github.com/msieb1/policy-search-for-2d-arm'''
@@ -27,13 +36,13 @@ class SimEnv3Joints():
         self.numDimOfSample = 15
         # self.numDimOfSample = self.dofArm*self.numBasicFun
         self.numSamples = 30
-        self.maxIter = 100
-        self.numTrials = 10
-
+        self.maxIter = 1000
+        self.numTrials = 10000
         self.pjoint_ = np.zeros((self.dofArm + 1, 2))
         self.px = np.zeros((1, 4))
         self.py = np.zeros((1, 4))
         self.fig = plt.figure()
+
 
     def transJoint(self, thetaSingle):
         Tp = np.matrix(((cos(thetaSingle), sin(thetaSingle), self.lengthJoint*sin(thetaSingle)), \
@@ -206,27 +215,41 @@ class SimEnv3Joints():
 
         return Mu_w, Sigma_w
 
+    def writecsv(self, filepath, data):
+        goalcsv = open(filepath, 'w')
+        goalcsv.truncate()
+        datawriterfile = csv.writer(goalcsv)
+        datawriterfile.writerow(data)
+
     def run(self):
         maxIter = self.maxIter
         numDimOfSample = self.numDimOfSample
         numSamples = self.numSamples
         numTrials = self.numTrials
         global settarget
+        np.random.seed(0)
+        allgoals = np.random.rand(numTrials,2)
+        self.writecsv('/home/zheng/ws_xiao/gym_test/gym_pre_arms/goal.csv', allgoals)
 
         R_mean_storage = np.zeros((maxIter, numTrials))
         R_mean = np.zeros(maxIter)
         R_std = np.zeros(maxIter)
 
-        for t in range(0, numTrials):
-            settarget = np.random.rand(1, 2)[0] * 15
+        R_old = np.zeros(numSamples)
+        Mu_w = np.zeros(numDimOfSample)
+        Sigma_w = np.eye(numDimOfSample) * 1e6
+        #settarget = np.random.rand(1, 2)[0] * 15
+        X = np.empty(shape=(0, 2))
+        Y = np.empty(shape=(0, 15))
+        for t in range(0, numTrials-1):
+            settarget = allgoals[t]
+            print('target : ', settarget)
             print('trials No. : ', t)
-            R_old = np.zeros(numSamples)
-            Mu_w = np.zeros(numDimOfSample)
-            Sigma_w = np.eye(numDimOfSample) * 1e6
             for k in range(0, maxIter):
                 R, theta, traj = self.calculate_reward_and_theta(Mu_w, Sigma_w, settarget)
                 # plot end config of sampled trajectories
                 self.pjoint_global_update()
+                '''
                 plt.axis(([-30, 30, -30, 30]))
                 plt.grid()
                 plt.ion()
@@ -234,13 +257,13 @@ class SimEnv3Joints():
                 plt.plot(settarget[0], settarget[1], 'ro')
                 plt.pause(0.00001)
                 plt.cla()
-
+                '''
                 disx = self.px[0][-1] - settarget[0]
                 disy = self.py[0][-1] - settarget[1]
                 dis = sqrt(disx**2 + disy**2)
                 # print('dis',dis)
                 if dis < 1e-2:
-                    print('iteration stop at ',k)
+                    print('iteration stop at ', k)
                     break
 
                 #if np.linalg.norm(np.mean(R_old) - np.mean(R)) < 1e-3:
@@ -253,12 +276,16 @@ class SimEnv3Joints():
                 R_old = R
                 if k == maxIter and t == numTrials:
                     print(np.mean(R))
-            print('start trajactory of trial ', t)
+            print('1', traj)
+            print('2', Sigma_w)
+            print('3', Mu_w)
+            print('start trajectory of trial ', t)
             # plot trajectory of last iteration
             for j in range(traj.shape[0]-1):
                 self.jointPositions(traj[j + 1,::2])
                 self.pjoint_global_update()
                 #pos[i + 1, :] = self.fKinematics(q[i + 1, ::2])
+                '''
                 plt.axis(([-30, 30, -30, 30]))
                 plt.grid()
                 plt.ion()
@@ -266,7 +293,40 @@ class SimEnv3Joints():
                 plt.plot(settarget[0], settarget[1], 'ro')
                 plt.pause(0.000001)
                 plt.cla()
-
+                '''
+            X = np.vstack((X, np.array(settarget)))
+            print(X.shape, X, settarget)
+            Y = np.vstack((Y, np.array(Mu_w)))
+            print(Y.shape, Y)
+            kernel = GPy.kern.RBF(input_dim=2, variance=1., lengthscale=1.)
+            m = GPy.models.GPRegression(X, Y, kernel)
+            m.optimize(messages=True)
+            display(m)
+            #settarget = np.random.rand(1, 2)[0] * 15
+            #print("new target :", settarget, np.array([settarget]))
+            if t<numTrials-1:
+                y, ysigma = m.predict(Xnew=np.array([allgoals[t+1]]))
+                Mu_w = y[0]
+                print('predict mu : ', Mu_w, y, ysigma)
+        self.writecsv('/home/zheng/ws_xiao/gym_test/gym_pre_arms/X.csv', X)
+        self.writecsv('/home/zheng/ws_xiao/gym_test/gym_pre_arms/Y.csv', Y)
+        # let X, Y be data loaded above
+        # Model creation:
+        # m = GPy.models.GPRegression(X, Y)
+        # m.optimize()
+        # 1: Saving a model:
+        np.save('model_save.npy', m.param_array)
+        # 2: loading a model
+        # Model creation, without initialization:
+        m_load = GPy.models.GPRegression(X, Y, initialize=False)
+        m_load.update_model(False)  # do not call the underlying expensive algebra on load
+        m_load.initialize_parameter()  # Initialize the parameters (connect the parameters up)
+        m_load[:] = np.load('model_save.npy')  # Load the parameters
+        m_load.update_model(True)  # Call the algebra only once
+        #print(m_load)
+        display(m_load)
+        y, ysigma = m.predict(Xnew=np.array([settarget]))
+        print('final : ', y, ysigma)
         R_mean = np.mean(R_mean_storage, axis=1)
         R_std = np.sqrt(np.diag(np.cov(R_mean_storage)))
         print("Average return of final policy: ")
@@ -274,6 +334,9 @@ class SimEnv3Joints():
         print("\n")
 
 if __name__ == '__main__':
+    start_time = time.time()
     test = SimEnv3Joints()
     test.run()
     plt.close(test.fig)
+    runningtime = time.time() - start_time
+    print("--- %s seconds ---" % (time.time() - start_time))
