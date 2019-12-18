@@ -229,7 +229,7 @@ class SimEnv3Joints():
         global settarget
         np.random.seed(0)
         allgoals = np.random.rand(numTrials,2)
-        self.writecsv('/home/zheng/ws_xiao/gym_test/gym_pre_arms/goal.csv', allgoals)
+        self.writecsv(currentdir+'/goal.csv', allgoals)
 
         R_mean_storage = np.zeros((maxIter, numTrials))
         R_mean = np.zeros(maxIter)
@@ -308,8 +308,8 @@ class SimEnv3Joints():
                 y, ysigma = m.predict(Xnew=np.array([allgoals[t+1]]))
                 Mu_w = y[0]
                 print('predict mu : ', Mu_w, y, ysigma)
-        self.writecsv('/home/zheng/ws_xiao/gym_test/gym_pre_arms/X.csv', X)
-        self.writecsv('/home/zheng/ws_xiao/gym_test/gym_pre_arms/Y.csv', Y)
+        self.writecsv(currentdir+'/X.csv', X)
+        self.writecsv(currentdir+'/Y.csv', Y)
         # let X, Y be data loaded above
         # Model creation:
         # m = GPy.models.GPRegression(X, Y)
