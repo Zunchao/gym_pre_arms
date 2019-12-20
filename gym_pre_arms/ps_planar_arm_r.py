@@ -230,7 +230,7 @@ class SimEnv3Joints():
         numTrials = self.numTrials
         global settarget
         np.random.seed(0)
-        allgoals = np.random.rand(numTrials,2)
+        allgoals = np.random.rand(numTrials, 2)*15
         self.csvwr.writecsv(filepath=currentdir+'/goal.csv', data=allgoals)
 
         R_mean_storage = np.zeros((maxIter, numTrials))

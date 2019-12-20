@@ -222,8 +222,8 @@ class SimEnv3Joints():
         numTrials = self.numTrials
         global settarget
         np.random.seed(1)
-        allgoals = np.random.rand(numTrials,2)
-        self.csvwr.writecsv(currentdir+'/goal.csv', allgoals)
+        allgoals = np.random.rand(numTrials,2)*15
+        #self.csvwr.writecsv(currentdir+'/goal.csv', allgoals)
 
         R_mean_storage = np.zeros((maxIter, numTrials))
         R_mean = np.zeros(maxIter)
@@ -237,8 +237,11 @@ class SimEnv3Joints():
         Y = np.empty(shape=(0, 15))
 
         if LOAD:
-            X = self.csvwr.writecsv(currentdir + '/inputX.csv')
+            X = self.csvwr.readcsv(currentdir + '/inputX.csv')
             Y = self.csvwr.readcsv(currentdir + '/outputY.csv')
+            X = np.array(X)
+            Y = np.array(Y)
+            print(X.shape, Y)
             m_load = GPy.models.GPRegression(X, Y, initialize=False)
             m_load.update_model(False)  # do not call the underlying expensive algebra on load
             m_load.initialize_parameter()  # Initialize the parameters (connect the parameters up)
@@ -248,6 +251,9 @@ class SimEnv3Joints():
             display(m_load)
         for t in range(0, numTrials-1):
             settarget = allgoals[t]
+            y, ysigma = m_load.predict(Xnew=np.array([settarget]))
+            Mu_w = y[0]
+            print('final : ', y, ysigma)
             print('target : ', settarget)
             print('trials No. : ', t)
             for k in range(0, maxIter):
@@ -295,6 +301,7 @@ class SimEnv3Joints():
                 plt.plot(settarget[0], settarget[1], 'ro')
                 plt.pause(0.000001)
                 plt.cla()
+            '''
             X = np.vstack((X, np.array(settarget)))
             print(X.shape, X, settarget)
             Y = np.vstack((Y, np.array(Mu_w)))
@@ -305,10 +312,12 @@ class SimEnv3Joints():
             display(m)
             #settarget = np.random.rand(1, 2)[0] * 15
             #print("new target :", settarget, np.array([settarget]))
+            
             if t<numTrials-1:
                 y, ysigma = m.predict(Xnew=np.array([allgoals[t+1]]))
                 Mu_w = y[0]
                 print('predict mu : ', Mu_w, y, ysigma)
+        
         self.csvwr.writecsv(currentdir+'/inputX.csv', X)
         self.csvwr.writecsv(currentdir+'/outputY.csv', Y)
         # let X, Y be data loaded above
@@ -328,6 +337,7 @@ class SimEnv3Joints():
         display(m_load)
         y, ysigma = m.predict(Xnew=np.array([settarget]))
         print('final : ', y, ysigma)
+        '''
         R_mean = np.mean(R_mean_storage, axis=1)
         R_std = np.sqrt(np.diag(np.cov(R_mean_storage)))
         print("Average return of final policy: ")
@@ -337,7 +347,7 @@ class SimEnv3Joints():
 if __name__ == '__main__':
     start_time = time.time()
     test = SimEnv3Joints()
-    load = 0
+    load = 1
     test.run(load)
     runningtime = time.time() - start_time
     print("--- %s seconds ---" % (time.time() - start_time))
