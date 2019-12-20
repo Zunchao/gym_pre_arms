@@ -24,5 +24,5 @@ if __name__ == '__main__':
     x = numpy.random.rand(10,2)
     print(numpy.array(x))
     test.writecsv('/home/zheng/ws_xiao/gym_test/gym_pre_arms/test.csv', x)
-    d = test.readcsv('/home/zheng/ws_xiao/gym_test/gym_pre_arms/Y.csv')
+    d = test.readcsv('/home/zheng/ws_xiao/gym_test/gym_pre_arms/outputY.csv')
     print(d)

@@ -310,8 +310,8 @@ class SimEnv3Joints():
                 y, ysigma = m.predict(Xnew=np.array([allgoals[t+1]]))
                 Mu_w = y[0]
                 print('predict mu : ', Mu_w, y, ysigma)
-        self.csvwr.writecsv(currentdir+'/X.csv', X)
-        self.csvwr.writecsv(currentdir+'/Y.csv', Y)
+        self.csvwr.writecsv(currentdir+'/inputX.csv', X)
+        self.csvwr.writecsv(currentdir+'/outputY.csv', Y)
         # let X, Y be data loaded above
         # Model creation:
         # m = GPy.models.GPRegression(X, Y)

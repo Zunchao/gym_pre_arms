@@ -237,8 +237,8 @@ class SimEnv3Joints():
         Y = np.empty(shape=(0, 15))
 
         if LOAD:
-            X = self.csvwr.writecsv(currentdir + '/X.csv')
-            Y = self.csvwr.readcsv(currentdir + '/Y.csv')
+            X = self.csvwr.writecsv(currentdir + '/inputX.csv')
+            Y = self.csvwr.readcsv(currentdir + '/outputY.csv')
             m_load = GPy.models.GPRegression(X, Y, initialize=False)
             m_load.update_model(False)  # do not call the underlying expensive algebra on load
             m_load.initialize_parameter()  # Initialize the parameters (connect the parameters up)
@@ -309,8 +309,8 @@ class SimEnv3Joints():
                 y, ysigma = m.predict(Xnew=np.array([allgoals[t+1]]))
                 Mu_w = y[0]
                 print('predict mu : ', Mu_w, y, ysigma)
-        self.csvwr.writecsv(currentdir+'/X.csv', X)
-        self.csvwr.writecsv(currentdir+'/Y.csv', Y)
+        self.csvwr.writecsv(currentdir+'/inputX.csv', X)
+        self.csvwr.writecsv(currentdir+'/outputY.csv', Y)
         # let X, Y be data loaded above
         # Model creation:
         # m = GPy.models.GPRegression(X, Y)
