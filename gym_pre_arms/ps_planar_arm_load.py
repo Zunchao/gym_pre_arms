@@ -1,13 +1,11 @@
 from math import pi, sin, cos, sqrt
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.animation as animation
-from time import time
+import pandas as pd
 import GPy
 from IPython.display import display
-from csv_writer_reader import CSV_Writer_Reader
 import time
-import csv
+from csv_writer_reader import CSV_Writer_Reader
 import os
 import inspect
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
@@ -217,21 +215,15 @@ class SimEnv3Joints():
 
         return Mu_w, Sigma_w
 
-    def writecsv(self, filepath, data):
-        goalcsv = open(filepath, 'w')
-        goalcsv.truncate()
-        datawriterfile = csv.writer(goalcsv)
-        datawriterfile.writerow(data)
-
-    def run(self):
+    def run(self, LOAD):
         maxIter = self.maxIter
         numDimOfSample = self.numDimOfSample
         numSamples = self.numSamples
         numTrials = self.numTrials
         global settarget
-        np.random.seed(0)
+        np.random.seed(1)
         allgoals = np.random.rand(numTrials,2)
-        self.csvwr.writecsv(filepath=currentdir+'/goal.csv', data=allgoals)
+        self.csvwr.writecsv(currentdir+'/goal.csv', allgoals)
 
         R_mean_storage = np.zeros((maxIter, numTrials))
         R_mean = np.zeros(maxIter)
@@ -243,6 +235,17 @@ class SimEnv3Joints():
         #settarget = np.random.rand(1, 2)[0] * 15
         X = np.empty(shape=(0, 2))
         Y = np.empty(shape=(0, 15))
+
+        if LOAD:
+            X = self.csvwr.writecsv(currentdir + '/X.csv')
+            Y = self.csvwr.readcsv(currentdir + '/Y.csv')
+            m_load = GPy.models.GPRegression(X, Y, initialize=False)
+            m_load.update_model(False)  # do not call the underlying expensive algebra on load
+            m_load.initialize_parameter()  # Initialize the parameters (connect the parameters up)
+            m_load[:] = np.load('model_save.npy')  # Load the parameters
+            m_load.update_model(True)  # Call the algebra only once
+            # print(m_load)
+            display(m_load)
         for t in range(0, numTrials-1):
             settarget = allgoals[t]
             print('target : ', settarget)
@@ -251,7 +254,6 @@ class SimEnv3Joints():
                 R, theta, traj = self.calculate_reward_and_theta(Mu_w, Sigma_w, settarget)
                 # plot end config of sampled trajectories
                 self.pjoint_global_update()
-                '''
                 plt.axis(([-30, 30, -30, 30]))
                 plt.grid()
                 plt.ion()
@@ -259,7 +261,6 @@ class SimEnv3Joints():
                 plt.plot(settarget[0], settarget[1], 'ro')
                 plt.pause(0.00001)
                 plt.cla()
-                '''
                 disx = self.px[0][-1] - settarget[0]
                 disy = self.py[0][-1] - settarget[1]
                 dis = sqrt(disx**2 + disy**2)
@@ -287,7 +288,6 @@ class SimEnv3Joints():
                 self.jointPositions(traj[j + 1,::2])
                 self.pjoint_global_update()
                 #pos[i + 1, :] = self.fKinematics(q[i + 1, ::2])
-                '''
                 plt.axis(([-30, 30, -30, 30]))
                 plt.grid()
                 plt.ion()
@@ -295,7 +295,6 @@ class SimEnv3Joints():
                 plt.plot(settarget[0], settarget[1], 'ro')
                 plt.pause(0.000001)
                 plt.cla()
-                '''
             X = np.vstack((X, np.array(settarget)))
             print(X.shape, X, settarget)
             Y = np.vstack((Y, np.array(Mu_w)))
@@ -338,7 +337,7 @@ class SimEnv3Joints():
 if __name__ == '__main__':
     start_time = time.time()
     test = SimEnv3Joints()
-    test.run()
-    plt.close(test.fig)
+    load = 0
+    test.run(load)
     runningtime = time.time() - start_time
     print("--- %s seconds ---" % (time.time() - start_time))
