@@ -36,7 +36,7 @@ class SimEnv3Joints():
         # self.numDimOfSample = self.dofArm*self.numBasicFun
         self.numSamples = 30
         self.maxIter = 1000
-        self.numTrials = 1000
+        self.numTrials = 10
         self.pjoint_ = np.zeros((self.dofArm + 1, 2))
         self.px = np.zeros((1, 4))
         self.py = np.zeros((1, 4))
@@ -220,16 +220,16 @@ class SimEnv3Joints():
         numDimOfSample = self.numDimOfSample
         numSamples = self.numSamples
         numTrials = self.numTrials
-        global settarget
+        #global settarget
         np.random.seed(1)
         allgoals = np.random.rand(numTrials,2)*15
         #self.csvwr.writecsv(currentdir+'/goal.csv', allgoals)
 
-        R_mean_storage = np.zeros((maxIter, numTrials))
         R_mean = np.zeros(maxIter)
         R_std = np.zeros(maxIter)
 
         R_old = np.zeros(numSamples)
+        R_mean_storage = np.zeros((maxIter, numTrials))
         Mu_w = np.zeros(numDimOfSample)
         Sigma_w = np.eye(numDimOfSample) * 1e6
         #settarget = np.random.rand(1, 2)[0] * 15
@@ -251,9 +251,14 @@ class SimEnv3Joints():
             display(m_load)
         for t in range(0, numTrials-1):
             settarget = allgoals[t]
-            y, ysigma = m_load.predict(Xnew=np.array([settarget]))
-            Mu_w = y[0]
-            print('final : ', y, ysigma)
+            if LOAD:
+                y, ysigma = m_load.predict(Xnew=np.array([settarget]))
+                Mu_w = y[0]
+                print('final : ', y, ysigma)
+            if not LOAD:
+                R_mean_storage = np.zeros((maxIter, numTrials))
+                Mu_w = np.zeros(numDimOfSample)
+                Sigma_w = np.eye(numDimOfSample) * 1e6
             print('target : ', settarget)
             print('trials No. : ', t)
             for k in range(0, maxIter):
@@ -347,7 +352,7 @@ class SimEnv3Joints():
 if __name__ == '__main__':
     start_time = time.time()
     test = SimEnv3Joints()
-    load = 1
+    load = 0
     test.run(load)
     runningtime = time.time() - start_time
     print("--- %s seconds ---" % (time.time() - start_time))

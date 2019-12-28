@@ -28,7 +28,7 @@ class SimEnv3Joints():
         # target position: Xt Yt
         self.setTargetPosi = np.array([10., 10.])
         self.numBasicFun = 5
-        self.numTrajSteps = 20
+        self.numTrajSteps = 25
         self.dt = 0.005
         self.kp = 1400.
         self.masses = np.ones(self.numJoints)
@@ -38,7 +38,7 @@ class SimEnv3Joints():
         # self.numDimOfSample = self.dofArm*self.numBasicFun
         self.numSamples = 30
         self.maxIter = 1000
-        self.numTrials = 1000
+        self.numTrials = 100000
         self.pjoint_ = np.zeros((self.dofArm + 1, 2))
         self.px = np.zeros((1, 4))
         self.py = np.zeros((1, 4))
@@ -231,7 +231,7 @@ class SimEnv3Joints():
         global settarget
         np.random.seed(0)
         allgoals = np.random.rand(numTrials, 2)*15
-        self.csvwr.writecsv(filepath=currentdir+'/goal.csv', data=allgoals)
+        self.csvwr.writecsv(filepath=currentdir+'/goal_ori.csv', data=allgoals)
 
         R_mean_storage = np.zeros((maxIter, numTrials))
         R_mean = np.zeros(maxIter)
@@ -278,9 +278,9 @@ class SimEnv3Joints():
                 R_old = R
                 if k == maxIter and t == numTrials:
                     print(np.mean(R))
-            print('1', traj)
-            print('2', Sigma_w)
-            print('3', Mu_w)
+            #print('1', traj.shape)
+            #print('2', len(Sigma_w))
+            #print('3', Mu_w)
             print('start trajectory of trial ', t)
             # plot trajectory of last iteration
             for j in range(traj.shape[0]-1):
@@ -300,6 +300,7 @@ class SimEnv3Joints():
             print(X.shape, X, settarget)
             Y = np.vstack((Y, np.array(Mu_w)))
             print(Y.shape, Y)
+            '''
             kernel = GPy.kern.RBF(input_dim=1, variance=1., lengthscale=1.)
             m = GPy.models.GPRegression(X, Y, kernel)
             m.optimize(messages=True)
@@ -310,8 +311,10 @@ class SimEnv3Joints():
                 y, ysigma = m.predict(Xnew=np.array([allgoals[t+1]]))
                 Mu_w = y[0]
                 print('predict mu : ', Mu_w, y, ysigma)
-        self.csvwr.writecsv(currentdir+'/inputX.csv', X)
-        self.csvwr.writecsv(currentdir+'/outputY.csv', Y)
+            '''
+        self.csvwr.writecsv(currentdir+'/inputX_ori.csv', X)
+        self.csvwr.writecsv(currentdir+'/outputY_ori.csv', Y)
+        '''
         # let X, Y be data loaded above
         # Model creation:
         # m = GPy.models.GPRegression(X, Y)
@@ -329,6 +332,7 @@ class SimEnv3Joints():
         display(m_load)
         y, ysigma = m.predict(Xnew=np.array([settarget]))
         print('final : ', y, ysigma)
+        '''
         R_mean = np.mean(R_mean_storage, axis=1)
         R_std = np.sqrt(np.diag(np.cov(R_mean_storage)))
         print("Average return of final policy: ")
