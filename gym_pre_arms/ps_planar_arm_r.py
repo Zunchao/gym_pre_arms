@@ -297,9 +297,9 @@ class SimEnv3Joints():
                 plt.cla()
                 '''
             X = np.vstack((X, np.array(settarget)))
-            print(X.shape, X, settarget)
+            print(X.shape)
             Y = np.vstack((Y, np.array(Mu_w)))
-            print(Y.shape, Y)
+            print(Y.shape)
             '''
             kernel = GPy.kern.RBF(input_dim=1, variance=1., lengthscale=1.)
             m = GPy.models.GPRegression(X, Y, kernel)
