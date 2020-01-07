@@ -25,7 +25,7 @@ class SimEnv3Joints():
         # em param
         self.lamta = 7
         self.numDim = 15
-        self.numSamples = 50
+        self.numSamples = 30
         self.maxIter = 200
         self.numTrials = 10
 
@@ -110,7 +110,7 @@ class SimEnv3Joints():
         dis_ee = self.setTargetPosi - sim_traj[2][-1, :]
         rCost = np.dot(dis_ee, dis_ee) * df
 
-        return uCost + rCost, sim_traj[0]
+        return uCost + rCost, sim_traj
 
     def policyRepresentationDMP(self, dmp_w):
         alphaz = 3.3
@@ -166,10 +166,14 @@ class SimEnv3Joints():
             # px, py = self.pjoint_global_update()
             # self.movie_animate(0)
             vel[i + 1, :] = np.dot(self.jacobianMatrix(q[i + 1, ::2])[:2, :], q[i + 1, 1::2].T)  # linear velocity
-
+        trajetories = []
+        trajetories.append(q)
+        trajetories.append(u)
+        trajetories.append(pos)
+        trajetories.append(vel)
         #plt.plot(pjoint[:,0],pjoint[:,1],'r.-')
         #plt.show()
-        return [q, u, pos, vel]
+        return trajetories#[q, u, pos, vel]
 
     # maximum likelihood
     def calculate_reward_and_theta(self, Mu_w, Sigma_w):
@@ -261,9 +265,10 @@ class SimEnv3Joints():
                     print(np.mean(R))
             print('start trajactory of trial ', t)
             # plot trajectory of last iteration
-            for j in range(traj.shape[0]-1):
-                self.jointPositions(traj[j + 1,::2])
+            for j in range(traj[0].shape[0]-1):
+                self.jointPositions(traj[0][j + 1,::2])
                 self.pjoint_global_update()
+                #print(self.px[0][3], self.py[0][3], traj[2][j+1,:])
                 #pos[i + 1, :] = self.fKinematics(q[i + 1, ::2])
                 plt.axis(([-30, 30, -30, 30]))
                 plt.grid()

@@ -38,7 +38,7 @@ class SimEnv3Joints():
         # self.numDimOfSample = self.dofArm*self.numBasicFun
         self.numSamples = 30
         self.maxIter = 1000
-        self.numTrials = 1000
+        self.numTrials = 50000
         self.pjoint_ = np.zeros((self.dofArm + 1, 2))
         self.px = np.zeros((1, 4))
         self.py = np.zeros((1, 4))
@@ -237,6 +237,7 @@ class SimEnv3Joints():
         global settarget
         np.random.seed(1)
         allgoals = np.random.rand(numTrials, 2)*15
+        inittheta = np.random.random(3*numTrials)*pi
         self.csvwr.writecsv(filepath=currentdir+'/goal_gprand.csv', data=allgoals)
 
         R_mean_storage = np.zeros((maxIter, numTrials))
@@ -251,7 +252,7 @@ class SimEnv3Joints():
         Y = np.empty(shape=(0, 15))
         for t in range(0, numTrials-1):
             Sigma_w = np.eye(numDimOfSample) * 1e6
-            self.initState = self.reset()
+            self.initState = np.array([inittheta[t], 0.0, inittheta[t+3], 0.0, inittheta[t+6], 0.0])
             pos = self.fKinematics(self.initState[::2])
             settarget = allgoals[t]
             startend = np.concatenate([pos, settarget])
@@ -261,7 +262,7 @@ class SimEnv3Joints():
                 R, theta, traj = self.calculate_reward_and_theta(Mu_w, Sigma_w, settarget)
                 # plot end config of sampled trajectories
                 self.pjoint_global_update()
-
+                '''
                 plt.axis(([-30, 30, -30, 30]))
                 plt.grid()
                 plt.ion()
@@ -269,7 +270,7 @@ class SimEnv3Joints():
                 plt.plot(settarget[0], settarget[1], 'ro')
                 plt.pause(0.00001)
                 plt.cla()
-
+                '''
                 disx = self.px[0][-1] - settarget[0]
                 disy = self.py[0][-1] - settarget[1]
                 dis = sqrt(disx**2 + disy**2)
@@ -288,16 +289,16 @@ class SimEnv3Joints():
                 R_old = R
                 if k == maxIter and t == numTrials:
                     print(np.mean(R))
-            print('1', traj.shape)
-            print('2', len(Sigma_w))
-            print('3', Mu_w)
+            #print('1', traj.shape)
+            #print('2', len(Sigma_w))
+            #print('3', Mu_w)
             print('start trajectory of trial ', t)
             # plot trajectory of last iteration
             for j in range(traj.shape[0]-1):
                 self.jointPositions(traj[j + 1,::2])
                 self.pjoint_global_update()
                 #pos[i + 1, :] = self.fKinematics(q[i + 1, ::2])
-
+                '''
                 plt.axis(([-30, 30, -30, 30]))
                 plt.grid()
                 plt.ion()
@@ -305,12 +306,12 @@ class SimEnv3Joints():
                 plt.plot(settarget[0], settarget[1], 'ro')
                 plt.pause(0.000001)
                 plt.cla()
-
-            print(startend)
+                '''
             X = np.vstack((X, np.array(startend)))
             #print(X.shape, X, settarget)
             Y = np.vstack((Y, np.array(Mu_w)))
             #print(Y.shape, Y)
+            '''
             kernel = GPy.kern.RBF(input_dim=1, variance=1., lengthscale=1.)
             m = GPy.models.GPRegression(X, Y, kernel)
             m.optimize(messages=True)
@@ -321,8 +322,10 @@ class SimEnv3Joints():
                 y, ysigma = m.predict(Xnew=np.array([allgoals[t+1]]))
                 Mu_w = y[0]
                 print('predict mu : ', Mu_w, y, ysigma)
+            '''
         self.csvwr.writecsv(currentdir+'/inputX_gprand.csv', X)
         self.csvwr.writecsv(currentdir+'/outputY_gprand.csv', Y)
+        '''
         # let X, Y be data loaded above
         # Model creation:
         # m = GPy.models.GPRegression(X, Y)
@@ -340,6 +343,7 @@ class SimEnv3Joints():
         display(m_load)
         y, ysigma = m.predict(Xnew=np.array([settarget]))
         print('final : ', y, ysigma)
+        '''
         R_mean = np.mean(R_mean_storage, axis=1)
         R_std = np.sqrt(np.diag(np.cov(R_mean_storage)))
         print("Average return of final policy: ")

@@ -28,7 +28,7 @@ class SimEnv3Joints():
         # target position: Xt Yt
         self.setTargetPosi = np.array([10., 10.])
         self.numBasicFun = 5
-        self.numTrajSteps = 25
+        self.numTrajSteps = 30
         self.dt = 0.005
         self.kp = 1400.
         self.masses = np.ones(self.numJoints)
@@ -38,7 +38,7 @@ class SimEnv3Joints():
         # self.numDimOfSample = self.dofArm*self.numBasicFun
         self.numSamples = 30
         self.maxIter = 1000
-        self.numTrials = 100000
+        self.numTrials = 50000
         self.pjoint_ = np.zeros((self.dofArm + 1, 2))
         self.px = np.zeros((1, 4))
         self.py = np.zeros((1, 4))
@@ -229,7 +229,7 @@ class SimEnv3Joints():
         numSamples = self.numSamples
         numTrials = self.numTrials
         global settarget
-        np.random.seed(0)
+        np.random.seed(1)
         allgoals = np.random.rand(numTrials, 2)*15
         self.csvwr.writecsv(filepath=currentdir+'/goal_ori.csv', data=allgoals)
 

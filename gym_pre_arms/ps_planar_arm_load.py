@@ -44,6 +44,12 @@ class SimEnv3Joints():
         self.csvwr = CSV_Writer_Reader()
 
 
+    def reset(self):
+        theta1 = np.random.random(1)*pi/2
+        theta2 = np.random.random(1)*pi/2
+        theta3 = np.random.random(1)*pi/2
+        return np.array([theta1[0], 0., theta2[0], 0., theta3[0], 0.])
+
     def transJoint(self, thetaSingle):
         Tp = np.matrix(((cos(thetaSingle), sin(thetaSingle), self.lengthJoint*sin(thetaSingle)), \
                            (-sin(thetaSingle), cos(thetaSingle), self.lengthJoint*cos(thetaSingle)), \
@@ -224,6 +230,8 @@ class SimEnv3Joints():
         np.random.seed(1)
         allgoals = np.random.rand(numTrials,2)*15
         #self.csvwr.writecsv(currentdir+'/goal.csv', allgoals)
+        itheta = np.random.random(3*numTrials)*pi
+        print(itheta)
 
         R_mean = np.zeros(maxIter)
         R_std = np.zeros(maxIter)
@@ -233,27 +241,32 @@ class SimEnv3Joints():
         Mu_w = np.zeros(numDimOfSample)
         Sigma_w = np.eye(numDimOfSample) * 1e6
         #settarget = np.random.rand(1, 2)[0] * 15
-        X = np.empty(shape=(0, 2))
+        X = np.empty(shape=(0, 4))
         Y = np.empty(shape=(0, 15))
 
         if LOAD:
-            X = self.csvwr.readcsv(currentdir + '/inputX.csv')
-            Y = self.csvwr.readcsv(currentdir + '/outputY.csv')
+            X = self.csvwr.readcsv('/home/zheng/ws_xiao/gymtestresults/inputX_ori_rand.csv')
+            Y = self.csvwr.readcsv('/home/zheng/ws_xiao/gymtestresults/outputY_ori_rand.csv')
             X = np.array(X)
             Y = np.array(Y)
             print(X.shape, Y)
-            m_load = GPy.models.GPRegression(X, Y, initialize=False)
+            m_load = GPy.models.GPRegression(X[1:1000,:], Y[1:1000,:], initialize=False)
             m_load.update_model(False)  # do not call the underlying expensive algebra on load
             m_load.initialize_parameter()  # Initialize the parameters (connect the parameters up)
-            m_load[:] = np.load('model_save.npy')  # Load the parameters
+            m_load[:] = np.load('/home/zheng/ws_xiao/gymtestresults/model_save.npy')  # Load the parameters
             m_load.update_model(True)  # Call the algebra only once
             # print(m_load)
             display(m_load)
         for t in range(0, numTrials-1):
+            self.initState = np.array([itheta[t], 0.0, itheta[t+3], 0.0, itheta[t+6], 0.0])
+            pos = self.fKinematics(self.initState[::2])
             settarget = allgoals[t]
+            startend = np.concatenate([pos, settarget])
+            print(startend)
             if LOAD:
-                y, ysigma = m_load.predict(Xnew=np.array([settarget]))
+                y, ysigma = m_load.predict(Xnew=np.array([startend]))
                 Mu_w = y[0]
+                Sigma_w = np.eye(numDimOfSample) * 1e6
                 print('final : ', y, ysigma)
             if not LOAD:
                 R_mean_storage = np.zeros((maxIter, numTrials))
@@ -306,6 +319,7 @@ class SimEnv3Joints():
                 plt.plot(settarget[0], settarget[1], 'ro')
                 plt.pause(0.000001)
                 plt.cla()
+            X = np.vstack((X, np.array(startend)))
             '''
             X = np.vstack((X, np.array(settarget)))
             print(X.shape, X, settarget)
@@ -343,6 +357,8 @@ class SimEnv3Joints():
         y, ysigma = m.predict(Xnew=np.array([settarget]))
         print('final : ', y, ysigma)
         '''
+
+        self.csvwr.writecsv(currentdir + '/inputX0.csv', X)
         R_mean = np.mean(R_mean_storage, axis=1)
         R_std = np.sqrt(np.diag(np.cov(R_mean_storage)))
         print("Average return of final policy: ")
