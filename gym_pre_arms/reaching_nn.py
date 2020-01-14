@@ -18,6 +18,8 @@ dimin = len(X)
 dimou = len(Y)
 x = np.array(X)
 y = np.array(Y)
+Nexp = 100
+x = csvrw.expand_data(x,Nexp)
 print(dimin, dimou, x.shape)
 x_train = tf.convert_to_tensor(x[1:90000, :], dtype=tf.float32)
 y_train = tf.convert_to_tensor(y[1:90000, :], dtype=tf.float32)
@@ -28,17 +30,32 @@ print(len(x_train), len(y_train), len(x_test), y_test.shape[1])
 
 model = tf.keras.models.Sequential([
     tf.keras.layers.Input(shape=x_train.shape[1]),
-    tf.keras.layers.Dense(256, activation='relu', kernel_initializer='he_normal'),
-    tf.keras.layers.Dense(256, activation='relu', kernel_initializer='he_normal'),
-    tf.keras.layers.Dense(256, activation='tanh'),
+    #tf.keras.layers.Dense(128, activation='relu', kernel_initializer='he_normal'),
+    tf.keras.layers.Dense(128),
+    tf.keras.layers.LeakyReLU(alpha=0.01),
+    tf.keras.layers.Dense(128),
+    tf.keras.layers.LeakyReLU(alpha=0.01),
+    tf.keras.layers.Dense(256),
+    tf.keras.layers.LeakyReLU(alpha=0.01),
+    tf.keras.layers.Dense(512, activation='tanh'),
+    tf.keras.layers.Dense(128),
+    tf.keras.layers.LeakyReLU(alpha=0.01),
+    tf.keras.layers.Dense(128),
+    tf.keras.layers.LeakyReLU(alpha=0.01),
+    tf.keras.layers.Dense(128),
+    tf.keras.layers.LeakyReLU(alpha=0.01),
+    #tf.keras.layers.Dense(64, activation='tanh'),
     tf.keras.layers.Dense(15)
 ])
 
-model.compile(optimizer=tf.keras.optimizers.SGD(learning_rate=1e-4),
-              loss=tf.keras.losses.MeanSquaredError())#metrics=[tf.keras.metrics.Accuracy()]
+def basic_loss_function(y_true, y_pred):
+    return tf.math.reduce_mean(y_true - y_pred)
+
+model.compile(optimizer=tf.keras.optimizers.RMSprop(learning_rate=1e-5),
+              loss=tf.keras.losses.MeanSquaredError)#metrics=[tf.keras.metrics.Accuracy()]
 
 model.fit(x_train, y_train,
-          batch_size=64,
+          batch_size=1,
           epochs=int(2e4))
 
 model.save('model.h5')

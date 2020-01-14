@@ -36,7 +36,7 @@ class SimEnv3Joints():
         # self.numDimOfSample = self.dofArm*self.numBasicFun
         self.numSamples = 30
         self.maxIter = 1000
-        self.numTrials = 10
+        self.numTrials = 1000
         self.pjoint_ = np.zeros((self.dofArm + 1, 2))
         self.px = np.zeros((1, 4))
         self.py = np.zeros((1, 4))
@@ -241,9 +241,9 @@ class SimEnv3Joints():
         Mu_w = np.zeros(numDimOfSample)
         Sigma_w = np.eye(numDimOfSample) * 1e6
         #settarget = np.random.rand(1, 2)[0] * 15
-        X = np.empty(shape=(0, 4))
-        Y = np.empty(shape=(0, 15))
-
+        Xin = np.empty(shape=(0, 4))
+        Yout = np.empty(shape=(0, 15))
+        sumk = 0
         if LOAD:
             X = self.csvwr.readcsv('/home/zheng/ws_xiao/gymtestresults/inputX_ori_rand.csv')
             Y = self.csvwr.readcsv('/home/zheng/ws_xiao/gymtestresults/outputY_ori_rand.csv')
@@ -257,7 +257,7 @@ class SimEnv3Joints():
             m_load.update_model(True)  # Call the algebra only once
             # print(m_load)
             display(m_load)
-        for t in range(0, numTrials-1):
+        for t in range(numTrials):
             self.initState = np.array([itheta[t], 0.0, itheta[t+3], 0.0, itheta[t+6], 0.0])
             pos = self.fKinematics(self.initState[::2])
             settarget = allgoals[t]
@@ -267,17 +267,18 @@ class SimEnv3Joints():
                 y, ysigma = m_load.predict(Xnew=np.array([startend]))
                 Mu_w = y[0]
                 Sigma_w = np.eye(numDimOfSample) * 1e6
-                print('final : ', y, ysigma)
+                #print('final : ', y, ysigma)
             if not LOAD:
                 R_mean_storage = np.zeros((maxIter, numTrials))
                 Mu_w = np.zeros(numDimOfSample)
                 Sigma_w = np.eye(numDimOfSample) * 1e6
             print('target : ', settarget)
             print('trials No. : ', t)
-            for k in range(0, maxIter):
+            for k in range(maxIter):
                 R, theta, traj = self.calculate_reward_and_theta(Mu_w, Sigma_w, settarget)
                 # plot end config of sampled trajectories
                 self.pjoint_global_update()
+                '''
                 plt.axis(([-30, 30, -30, 30]))
                 plt.grid()
                 plt.ion()
@@ -285,6 +286,7 @@ class SimEnv3Joints():
                 plt.plot(settarget[0], settarget[1], 'ro')
                 plt.pause(0.00001)
                 plt.cla()
+                '''
                 disx = self.px[0][-1] - settarget[0]
                 disy = self.py[0][-1] - settarget[1]
                 dis = sqrt(disx**2 + disy**2)
@@ -303,10 +305,12 @@ class SimEnv3Joints():
                 R_old = R
                 if k == maxIter and t == numTrials:
                     print(np.mean(R))
-            print('1', traj)
-            print('2', Sigma_w)
-            print('3', Mu_w)
+            sumk += k
+            #print('1', traj)
+            #print('2', Sigma_w)
+            #print('3', Mu_w)
             print('start trajectory of trial ', t)
+            '''
             # plot trajectory of last iteration
             for j in range(traj.shape[0]-1):
                 self.jointPositions(traj[j + 1,::2])
@@ -319,7 +323,8 @@ class SimEnv3Joints():
                 plt.plot(settarget[0], settarget[1], 'ro')
                 plt.pause(0.000001)
                 plt.cla()
-            X = np.vstack((X, np.array(startend)))
+            '''
+            Xin = np.vstack((Xin, np.array(startend)))
             '''
             X = np.vstack((X, np.array(settarget)))
             print(X.shape, X, settarget)
@@ -358,17 +363,18 @@ class SimEnv3Joints():
         print('final : ', y, ysigma)
         '''
 
-        self.csvwr.writecsv(currentdir + '/inputX0.csv', X)
+        self.csvwr.writecsv(currentdir + '/inputX0.csv', Xin)
         R_mean = np.mean(R_mean_storage, axis=1)
         R_std = np.sqrt(np.diag(np.cov(R_mean_storage)))
         print("Average return of final policy: ")
         print(R_mean[-1])
         print("\n")
+        print('sum iter : ', sumk)
 
 if __name__ == '__main__':
     start_time = time.time()
     test = SimEnv3Joints()
-    load = 0
+    load = 1
     test.run(load)
     runningtime = time.time() - start_time
     print("--- %s seconds ---" % (time.time() - start_time))
