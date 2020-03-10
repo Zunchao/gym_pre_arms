@@ -5,6 +5,7 @@ from csv_writer_reader import CSV_Writer_Reader
 import os
 import inspect
 import pickle
+import time
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parentdir = os.path.dirname(os.path.dirname(currentdir))
 os.sys.path.insert(0, parentdir)
@@ -15,7 +16,7 @@ class ReachingGPy():
 
     def gp_process(self, X, Y):
         kernel = GPy.kern.RBF(input_dim=4, variance=1., lengthscale=1.)
-        m = GPy.models.GPRegression(X, Y, kernel)
+        m = GPy.models.SparseGPRegression(X, Y, kernel)
         m.optimize(messages=True)
         display(m)
         np.save('model_save11.npy', m.param_array)
@@ -34,12 +35,13 @@ class ReachingGPy():
         y, ysigma = m_load.predict(Xnew=np.array([x0]))
         print('final 1 : ', y, ysigma)
 
-        model = pickle.load(open(currentdir+'/model_save12.dump', "rb"))
-        y, ysigma = model.predict(Xnew=np.array([x0]))
+        m_load = pickle.load(open(currentdir+'/model_save12.dump', "rb"))
+        y, ysigma = m_load.predict(Xnew=np.array([x0]))
         print('final 2 : ', y, ysigma)
 
 
 if __name__ == '__main__':
+    start_time = time.time()
     pathin = currentdir+'/inputX_ori_rand.csv'
     pathout = currentdir+'/outputY_ori_rand.csv'
     print(pathin)
@@ -48,10 +50,16 @@ if __name__ == '__main__':
     X = csvrw.readcsv(filepath=pathin)
     Y = csvrw.readcsv(filepath=pathout)
 
-    x = np.array(X[0:19999])
-    y = np.array(Y[0:19999])
+    x = np.array(X[0:2999])
+    y = np.array(Y[0:2999])
+
+    x1 = np.array(X[0:1])
+    y1 = np.array(Y[0:1])
     x0 = np.array(X[99999])
 
     test = ReachingGPy()
     test.gp_process(x, y)
-    test.gp_load(x,y, x0)
+    test.gp_load(x, y, x0)
+
+    runningtime = time.time() - start_time
+    print("--- %s seconds ---" % (time.time() - start_time))
