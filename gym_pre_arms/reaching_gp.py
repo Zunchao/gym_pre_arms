@@ -32,11 +32,11 @@ class ReachingGPy():
         m_load.update_model(True)  # Call the algebra only once
         #print(m_load)
         display(m_load)
-        y, ysigma = m_load.predict(Xnew=np.array([x0]))
+        y, ysigma = m_load.predict(Xnew=x0)
         print('final 1 : ', y, ysigma)
 
         m_load = pickle.load(open(currentdir+'/model_save12.dump', "rb"))
-        y, ysigma = m_load.predict(Xnew=np.array([x0]))
+        y, ysigma = m_load.predict(Xnew=x0)
         print('final 2 : ', y, ysigma)
 
 
@@ -50,16 +50,17 @@ if __name__ == '__main__':
     X = csvrw.readcsv(filepath=pathin)
     Y = csvrw.readcsv(filepath=pathout)
 
-    x = np.array(X[0:2999])
-    y = np.array(Y[0:2999])
+    x = np.array(X[0:999])
+    y = np.array(Y[0:999])
 
     x1 = np.array(X[0:1])
     y1 = np.array(Y[0:1])
-    x0 = np.array(X[99999])
+    x0 = np.array(X[99951:99964])
 
     test = ReachingGPy()
     test.gp_process(x, y)
-    test.gp_load(x, y, x0)
-
+    for i in range(x0.shape[0]):
+        print(np.array([x0[i]]))
+        test.gp_load(x1, y1, np.array([x0[i]]))
     runningtime = time.time() - start_time
     print("--- %s seconds ---" % (time.time() - start_time))

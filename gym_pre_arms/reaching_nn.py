@@ -1,10 +1,8 @@
-
-
-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import tensorflow as tf
 import numpy as np
 from csv_writer_reader import CSV_Writer_Reader
+
 # load dataset
 print('tf version : ', tf.__version__)
 pathin = '/home/zheng/ws_xiao/gymtestresults/inputX_ori_rand.csv'
@@ -18,8 +16,8 @@ dimin = len(X)
 dimou = len(Y)
 x = np.array(X)
 y = np.array(Y)
-Nexp = 100
-x = csvrw.expand_data(x,Nexp)
+Nexp = 200
+x = csvrw.expand_data(x, Nexp)
 print(dimin, dimou, x.shape)
 x_train = tf.convert_to_tensor(x[1:90000, :], dtype=tf.float32)
 y_train = tf.convert_to_tensor(y[1:90000, :], dtype=tf.float32)
@@ -27,6 +25,9 @@ x_test = tf.convert_to_tensor(x[90001:99990, :], dtype=tf.float32)
 y_test = tf.convert_to_tensor(y[90001:99990, :], dtype=tf.float32)
 
 print(len(x_train), len(y_train), len(x_test), y_test.shape[1])
+
+x_train=tf.keras.utils.normalize(x_train, axis=-1, order=2)
+y_train=tf.keras.utils.normalize(y_train, axis=-1, order=2)
 
 model = tf.keras.models.Sequential([
     tf.keras.layers.Input(shape=x_train.shape[1]),
@@ -51,12 +52,12 @@ model = tf.keras.models.Sequential([
 def basic_loss_function(y_true, y_pred):
     return tf.math.reduce_mean(y_true - y_pred)
 
-model.compile(optimizer=tf.keras.optimizers.RMSprop(learning_rate=1e-5),
-              loss=tf.keras.losses.MeanSquaredError)#metrics=[tf.keras.metrics.Accuracy()]
+model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=1e-5),
+              loss=tf.keras.losses.mean_squared_error)#metrics=[tf.keras.metrics.Accuracy()]
 
 model.fit(x_train, y_train,
-          batch_size=1,
-          epochs=int(2e4))
+          batch_size=128,
+          epochs=int(1e6))
 
 model.save('model.h5')
 
