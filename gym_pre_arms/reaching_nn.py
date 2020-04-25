@@ -2,11 +2,17 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import tensorflow as tf
 import numpy as np
 from csv_writer_reader import CSV_Writer_Reader
+import os
+import inspect
+import pickle
+import time
+currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+parentdir = os.path.dirname(os.path.dirname(currentdir))
+os.sys.path.insert(0, parentdir)
 
 # load dataset
-print('tf version : ', tf.__version__)
-pathin = '/home/zheng/ws_xiao/gymtestresults/inputX_ori_rand.csv'
-pathout = '/home/zheng/ws_xiao/gymtestresults/outputY_ori_rand.csv'
+pathin = currentdir+'/inputX_ori_rand.csv'
+pathout = currentdir+'/outputY_ori_rand.csv'
 # split into input (X) and output (Y) variables
 csvrw = CSV_Writer_Reader()
 X = csvrw.readcsv(filepath=pathin)
