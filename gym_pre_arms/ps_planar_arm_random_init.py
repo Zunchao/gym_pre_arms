@@ -291,7 +291,7 @@ class SimEnv3Joints():
                     print(np.mean(R))
             #print('1', traj.shape)
             #print('2', len(Sigma_w))
-            #print('3', Mu_w)
+            print('3', Mu_w, Sigma_w)
             print('start trajectory of trial ', t)
             # plot trajectory of last iteration
             for j in range(traj.shape[0]-1):

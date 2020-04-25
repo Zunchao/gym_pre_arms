@@ -38,7 +38,7 @@ class SimEnv3Joints():
         # self.numDimOfSample = self.dofArm*self.numBasicFun
         self.numSamples = 30
         self.maxIter = 1000
-        self.numTrials = 10000
+        self.numTrials = 2000
         self.pjoint_ = np.zeros((self.dofArm + 1, 2))
         self.px = np.zeros((1, 4))
         self.py = np.zeros((1, 4))
@@ -317,9 +317,12 @@ class SimEnv3Joints():
         # m = GPy.models.GPRegression(X, Y)
         # m.optimize()
         # 1: Saving a model:
-        np.save('model_save.npy', m.param_array)
+        #np.save('model_save.npy', m.param_array)
         # 2: loading a model
         # Model creation, without initialization:
+
+        X = []
+        Y = []
         m_load = GPy.models.GPRegression(X, Y, initialize=False)
         m_load.update_model(False)  # do not call the underlying expensive algebra on load
         m_load.initialize_parameter()  # Initialize the parameters (connect the parameters up)

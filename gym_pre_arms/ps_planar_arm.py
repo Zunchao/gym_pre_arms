@@ -18,7 +18,7 @@ class SimEnv3Joints():
         # target position: Xt Yt
         self.setTargetPosi = np.array([10., 10.])
         self.numBasicFun = 5
-        self.numTrajSteps = 20
+        self.numTrajSteps = 100
         self.dt = 0.01
         self.kp = 1400.
         self.masses = np.ones(self.numJoints)
@@ -263,7 +263,7 @@ class SimEnv3Joints():
                 R_old = R
                 if k == maxIter and t == numTrials:
                     print(np.mean(R))
-            print('start trajactory of trial ', t)
+            print('start trajactory of trial ', t, traj[0].shape)
             # plot trajectory of last iteration
             for j in range(traj[0].shape[0]-1):
                 self.jointPositions(traj[0][j + 1,::2])

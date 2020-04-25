@@ -57,7 +57,7 @@ model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=1e-5),
 
 model.fit(x_train, y_train,
           batch_size=128,
-          epochs=int(1e6))
+          epochs=int(1e5))
 
 model.save('model.h5')
 

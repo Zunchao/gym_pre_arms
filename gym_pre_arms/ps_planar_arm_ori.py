@@ -38,7 +38,7 @@ class SimEnv3Joints():
         # self.numDimOfSample = self.dofArm*self.numBasicFun
         self.numSamples = 30
         self.maxIter = 1000
-        self.numTrials = 50000
+        self.numTrials = 2
         self.pjoint_ = np.zeros((self.dofArm + 1, 2))
         self.px = np.zeros((1, 4))
         self.py = np.zeros((1, 4))
@@ -112,6 +112,7 @@ class SimEnv3Joints():
         df = -1e4
         dis_ee = settarget - sim_traj[2][-1, :]
         rCost = np.dot(dis_ee, dis_ee) * df
+        print('f ',uCost , rCost)
 
         return uCost + rCost, sim_traj[0]
 
