@@ -50,17 +50,17 @@ if __name__ == '__main__':
     X = csvrw.readcsv(filepath=pathin)
     Y = csvrw.readcsv(filepath=pathout)
 
-    x = np.array(X[0:999])
-    y = np.array(Y[0:999])
+    x = np.array(X[0:9999])
+    y = np.array(Y[0:9999])
 
     x1 = np.array(X[0:1])
     y1 = np.array(Y[0:1])
-    x0 = np.array(X[99951:99964])
+    x0 = np.array(X[99951:99954])
 
     test = ReachingGPy()
     test.gp_process(x, y)
     for i in range(x0.shape[0]):
-        print(np.array([x0[i]]))
+        print('input : ', np.array([x0[i]]))
         test.gp_load(x1, y1, np.array([x0[i]]))
     runningtime = time.time() - start_time
     print("--- %s seconds ---" % (time.time() - start_time))
