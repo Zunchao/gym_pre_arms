@@ -38,7 +38,7 @@ class SimEnv3Joints():
         # self.numDimOfSample = self.dofArm*self.numBasicFun
         self.numSamples = 30
         self.maxIter = 1000
-        self.numTrials = 1000000
+        self.numTrials = 100000
         self.pjoint_ = np.zeros((self.dofArm + 1, 2))
         self.px = np.zeros((1, 4))
         self.py = np.zeros((1, 4))
@@ -291,7 +291,7 @@ class SimEnv3Joints():
                     print(np.mean(R))
             #print('1', traj.shape)
             #print('2', len(Sigma_w))
-            print('3', Mu_w, Sigma_w)
+            #print('3', Mu_w, Sigma_w)
             print('start trajectory of trial ', t)
             # plot trajectory of last iteration
             for j in range(traj.shape[0]-1):
