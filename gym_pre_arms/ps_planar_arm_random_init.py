@@ -307,6 +307,13 @@ class SimEnv3Joints():
                 plt.pause(0.000001)
                 plt.cla()
                 '''
+            #data = asarray([[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]])
+            # save to npy file
+            np.save(currentdir+'/data/data_point_{}.npy'.format(t), startend)
+            np.save(currentdir+'/data/data_traj_{}.npy'.format(t), traj)
+            #data = np.load(currentdir+'/data/data_point_{}.npy'.format(t))
+            #data = np.load(currentdir+'/data/data_traj_{}.npy'.format(t))
+
             X = np.vstack((X, np.array(startend)))
             #print(X.shape, X, settarget)
             Y = np.vstack((Y, np.array(Mu_w)))
