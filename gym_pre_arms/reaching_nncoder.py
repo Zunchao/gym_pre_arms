@@ -22,8 +22,8 @@ csvrw = CSV_Writer_Reader()
 #dimou = len(Y)
 #x = np.array(X)
 #y = np.array(Y)
-Ntrain = 50000
-Ntest = 5000
+Ntrain = 20000
+Ntest = 2000
 #x = csvrw.expand_data(x, Nexp)
 #print(dimin, dimou, x.shape)
 
