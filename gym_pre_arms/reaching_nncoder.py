@@ -68,7 +68,7 @@ model = tf.keras.models.Sequential([
 
 model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=1e-5), loss=tf.keras.losses.mean_squared_error, metrics=['accuracy' ])
 
-model.fit(x_train, y_train, batch_size=128, epochs=int(1e3))
+model.fit(x_train, y_train, batch_size=128, epochs=int(1e5))
 
 model.save('modelcoder.h5')
 
@@ -93,8 +93,8 @@ print(loss)
 print('Restored model, accuracy: {:5.2f}%'.format(100*acc))
 
 outtest = reconstructed_model.predict(x_test)
-#print(outtest)
-#print(y_test)
+print(outtest)
+print(y_test)
 test = CSV_Writer_Reader()
 test.writecsv(currentdir+'/data_test.csv', outtest)
 test.writecsv(currentdir+'/data_test_ori.csv', y_test)
